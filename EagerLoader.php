@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories;
+namespace Modules\Qbrepository;
 
 use Illuminate\Http\Request;
 

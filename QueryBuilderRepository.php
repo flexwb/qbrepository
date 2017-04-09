@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories;
+namespace Modules\Qbrepository;
 
 use Modules\Base\Repository\BaseRepository;
 use Illuminate\Http\Request;
@@ -11,9 +11,6 @@ class QueryBuilderRepository {
 
     public function __construct(Request $request) {
 
-        $model = \App::make('\App\TempModel');
-
-        $this->model = $model;
         $this->rules = [];
     }
 
@@ -23,7 +20,7 @@ class QueryBuilderRepository {
         $q = \DB::table($table);
         $topCollection = $q->get();
 
-        $loader = new \App\Repositories\EagerLoader($topCollection, $table);
+        $loader = new EagerLoader($topCollection, $table);
         $collectionWithSubRes = $loader->loadBelongsTo()->get();
 
         return $topCollection;
