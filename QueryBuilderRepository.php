@@ -8,22 +8,40 @@ use Illuminate\Http\Request;
 class QueryBuilderRepository {
 
     protected $query;
+    protected $table;
+    protected $request;
+    
 
     public function __construct(Request $request) {
 
         $this->rules = [];
+        $this->request = $request;
     }
 
     public function index($request, $table) {
+        
+        
 
         $table = strtolower(str_plural(str_singular($table))); //make sure table name is singular and plural
+        $this->table = $table;
+        
         $q = \DB::table($table);
+        $q = $this->applyAcl($q);
         $topCollection = $q->get();
 
         $loader = new EagerLoader($topCollection, $table);
         $collectionWithSubRes = $loader->loadBelongsTo()->get();
 
         return $topCollection;
+    }
+    
+    protected function applyAcl($q) {
+        if(class_exists('\Modules\Acl\AclService')) {
+            $acl = new \Modules\Acl\AclService();
+            $q = $acl->forRes($this->table)->applyTo($q);
+        } 
+        
+        return $q;
     }
 
     public function getFields($table) {
