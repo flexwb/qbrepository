@@ -42,7 +42,7 @@ class LazyLoader {
             $relationTable = $relation->table;
             $fkQuery = \DB::table($relation->table)->where($relation->field, $this->topId)->get();
 //            dd($fkQuery);
-            $eagerLoader = new \App\Repositories\EagerLoader($fkQuery, $relation->table);
+            $eagerLoader = new EagerLoader($fkQuery, $relation->table);
             $collectionWithSubRes = $eagerLoader->loadBelongsTo()->get();
             $relationName = substr($relation->link_field, 0,-3);
             $subResources[$relation->table] = $collectionWithSubRes;

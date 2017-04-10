@@ -66,15 +66,17 @@ class QueryBuilderRepository {
     public function get($topRes, $topId) {
 
         $table = strtolower(str_plural(str_singular($topRes)));
-
+        $this->table = $table;
+        
         $q = \DB::table($table);
+        $q = $this->applyAcl($q);
         $q = $q->where($table . '.id', '=', $topId);
         $topCollection = $q->get();
         if($topCollection->isEmpty()) {
             return [];
         }
 
-        $loader = new \App\Repositories\LazyLoader($topCollection, $table, $topId);
+        $loader = new LazyLoader($topCollection, $table, $topId);
         $collectionWithSubRes = $loader->load()->get();
         $relations = $loader->relations;
 
