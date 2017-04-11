@@ -71,6 +71,7 @@ class QueryBuilderRepository {
         $q = \DB::table($table);
         $q = $this->applyAcl($q);
         $q = $q->where($table . '.id', '=', $topId);
+        
         $topCollection = $q->get();
         if($topCollection->isEmpty()) {
             return [];
