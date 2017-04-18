@@ -37,8 +37,6 @@ class QueryBuilderRepository {
                 ->loadBelongsTo()
                 ->get();
         
-        
-        
         $collectionWithSubRes = $this->embedWith($collectionWithSubRes, $table);
 
         return $collectionWithSubRes;
@@ -116,6 +114,8 @@ class QueryBuilderRepository {
     public function store($data, $table) {
 
         $tableName = strtolower(str_plural(str_singular($table)));
+
+        $data = $this->encryptPasswordField($data);
         
 
         $newInsertId = \DB::table($tableName)->insertGetId($data);
@@ -123,6 +123,14 @@ class QueryBuilderRepository {
         $newObject = \DB::table($tableName)->find($newInsertId);
 
         return $newObject;
+    }
+
+    public function encryptPasswordField($data) {
+        if(isset($data['password'])) {
+            $data['password'] = bcrypt($data['password']);
+        }
+
+        return $data;
     }
 
     public function remove($table, $topId) {
@@ -138,6 +146,7 @@ class QueryBuilderRepository {
 
         $tableName = strtolower(str_plural(str_singular($table)));
         $data = $request->all();
+        $data = $this->encryptPasswordField($data);
         $data = $this->removeRelationData($table, $data);
 
         $updateStatus = \DB::table($tableName)->where('id', '=', $topId)->update($data);
