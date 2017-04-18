@@ -61,7 +61,7 @@ class EagerLoader {
             $subResources[$fk->field] = $tempEmbedObj;
         }
 
-        $this->embed($subResources);
+        $this->embed($subResources, 'id');
         return $this;
     }
 
@@ -86,9 +86,29 @@ class EagerLoader {
 //
 //        return $this;
     }
+    
+    public function loadSubRes($subRes) {
+        
+        $fks = \DB::table('eds_fields')
+                ->where('link_table', '=', $this->topRes)
+                ->where('table', '=', $subRes)
+                ->where('key_type', '=', 'fk')
+                ->first();
+        if(empty($fks)) {
+            abort(500, "invalid with clause");
+        }
+        
+        $topResIds = $this->collection->pluck('id');
+        $subResources = \DB::table($subRes)
+                ->whereIn($fks->field, $topResIds)
+                ->get();
+        $this->embedSubRes([$subRes =>$subResources], $fks->field);
+        
+        return $this;
+        
+    }
 
-    public function embed($subResources) {
-
+    public function embed($subResources, $refKey) {
 
 
         if (!empty($subResources)) {
@@ -97,9 +117,11 @@ class EagerLoader {
 
             foreach ($subResources as $key => $val) {
 
-                $subResCollection = collect($val)->keyBy('id')->all();
-
+                $subResCollection = collect($val)->keyBy($refKey)->all();
+             
+                
                 $tempCollection = $this->collection->map(function ($item) use ($key, $subResCollection) {
+                    
                     $relKey = substr($key, 0, -3);
                     if(isset($subResCollection[$item->{$key}])) {
                         $item->{$relKey} = $subResCollection[$item->{$key}] ?: 0;
@@ -110,6 +132,25 @@ class EagerLoader {
             }
             $this->collection = $tempCollection;
         }
+
+
+        return $this;
+    }
+    
+    public function embedSubRes($subResources, $refKey) {
+
+
+
+        foreach ($subResources as $subResName => $subResCollection) {
+
+            $tempCollection = $this->collection->map(function ($item) use ($subResName, $subResCollection, $refKey) {
+
+                $item->{$subResName} = array_values((array) $subResCollection->where($refKey, '=', $item->id)->all());
+               
+                return $item;
+            });
+        }
+        $this->collection = $tempCollection;
 
 
         return $this;

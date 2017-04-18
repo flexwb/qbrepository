@@ -10,6 +10,7 @@ class QueryBuilderRepository {
     protected $query;
     protected $table;
     protected $request;
+    protected $with = [];
     
 
     public function __construct(Request $request) {
@@ -28,11 +29,19 @@ class QueryBuilderRepository {
         $q = \DB::table($table);
         $q = $this->applyAcl($q);
         $topCollection = $q->get();
+        
+        
 
         $loader = new EagerLoader($topCollection, $table);
-        $collectionWithSubRes = $loader->loadBelongsTo()->get();
+        $collectionWithSubRes = $loader
+                ->loadBelongsTo()
+                ->get();
+        
+        
+        
+        $collectionWithSubRes = $this->embedWith($collectionWithSubRes, $table);
 
-        return $topCollection;
+        return $collectionWithSubRes;
     }
     
     protected function applyAcl($q) {
@@ -82,6 +91,26 @@ class QueryBuilderRepository {
         $relations = $loader->relations;
 
         return ['data' => $collectionWithSubRes, 'relations' => $relations];
+    }
+    
+    public function with($with) {
+        $this->with = array_merge($this->with, $with);
+        return $this;
+        
+    }
+    
+    protected function embedWith($collection, $topRes) {
+        if(empty($this->with)) {
+            return $collection;
+        }
+        
+        $loader = new EagerLoader($collection, $topRes);
+        foreach($this->with as $subRes) {
+            $loader->loadSubRes($subRes);
+        }
+        $collection = $loader->get();
+        return $collection;
+        
     }
 
     public function store($data, $table) {
