@@ -20,8 +20,6 @@ class QueryBuilderRepository {
     }
 
     public function index($request, $table) {
-        
-        
 
         $table = strtolower(str_plural(str_singular($table))); //make sure table name is singular and plural
         $this->table = $table;
@@ -29,8 +27,6 @@ class QueryBuilderRepository {
         $q = \DB::table($table);
         $q = $this->applyAcl($q);
         $topCollection = $q->get();
-        
-        
 
         $loader = new EagerLoader($topCollection, $table);
         $collectionWithSubRes = $loader
