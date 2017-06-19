@@ -112,6 +112,7 @@ class QueryBuilderRepository {
         $tableName = strtolower(str_plural(str_singular($table)));
 
         $data = $this->encryptPasswordField($data);
+        $data['created_at'] = \Carbon\Carbon::now()->toDateTimeString();
         
 
         $newInsertId = \DB::table($tableName)->insertGetId($data);
@@ -143,6 +144,7 @@ class QueryBuilderRepository {
         $tableName = strtolower(str_plural(str_singular($table)));
         $data = $request->all();
         $data = $this->encryptPasswordField($data);
+        $data['updated_at'] = \Carbon\Carbon::now()->toDateTimeString();
         $data = $this->removeRelationData($table, $data);
 
         $updateStatus = \DB::table($tableName)->where('id', '=', $topId)->update($data);
